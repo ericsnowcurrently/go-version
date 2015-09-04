@@ -81,3 +81,48 @@ func (distroSuite) TestValidateEmpty(c *gc.C) {
 
 	c.Check(err, gc.NotNil)
 }
+
+func (distroSuite) TestStringCapitalized(c *gc.C) {
+	var distro os.Distro
+	distro.Name = "Spam"
+	str := distro.String()
+
+	c.Check(str, gc.Equals, "spam")
+}
+
+func (distroSuite) TestStringUpper(c *gc.C) {
+	var distro os.Distro
+	distro.Name = "SPAM"
+	str := distro.String()
+
+	c.Check(str, gc.Equals, "spam")
+}
+
+func (distroSuite) TestStringLower(c *gc.C) {
+	var distro os.Distro
+	distro.Name = "spam"
+	str := distro.String()
+
+	c.Check(str, gc.Equals, "spam")
+}
+
+func (distroSuite) TestIDStringKnown(c *gc.C) {
+	id := os.DistroUbuntu
+	str := id.String()
+
+	c.Check(str, gc.Equals, "ubuntu")
+}
+
+func (distroSuite) TestIDStringUnknown(c *gc.C) {
+	id := os.DistroID(99)
+	str := id.String()
+
+	c.Check(str, gc.Equals, "unknown")
+}
+
+func (distroSuite) TestIDStringZeroValue(c *gc.C) {
+	var id os.DistroID
+	str := id.String()
+
+	c.Check(str, gc.Equals, "unknown")
+}

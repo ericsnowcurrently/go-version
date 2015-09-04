@@ -4,6 +4,8 @@
 package os
 
 import (
+	"strings"
+
 	"github.com/juju/errors"
 )
 
@@ -70,5 +72,19 @@ func (distro Distro) Validate() error {
 	return nil
 }
 
+// String returns the string representation of the distro. It is
+// rendered as the lower-cased distro name.
+func (distro Distro) String() string {
+	return strings.ToLower(distro.Name)
+}
+
 // Distro identifies a linux distribution.
 type DistroID uint
+
+// String returns a string representation of the distro.
+func (id DistroID) String() string {
+	if info, ok := distros[id]; ok {
+		return info.String()
+	}
+	return "unknown"
+}

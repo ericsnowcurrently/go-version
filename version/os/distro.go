@@ -88,3 +88,13 @@ func (id DistroID) String() string {
 	}
 	return "unknown"
 }
+
+// Info returns information about the distro, if recognized. If not
+// recognized then false is returned.
+func (id DistroID) Info() (Distro, bool) {
+	if distro, ok := distros[id]; ok {
+		copied := distro
+		return copied, true
+	}
+	return Distro{}, false
+}

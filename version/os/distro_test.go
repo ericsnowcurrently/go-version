@@ -106,23 +106,53 @@ func (distroSuite) TestStringLower(c *gc.C) {
 	c.Check(str, gc.Equals, "spam")
 }
 
-func (distroSuite) TestIDStringKnown(c *gc.C) {
+var _ = gc.Suite(&distroIDSuite{})
+
+type distroIDSuite struct {
+	testing.IsolationSuite
+}
+
+func (distroIDSuite) TestStringKnown(c *gc.C) {
 	id := os.DistroUbuntu
 	str := id.String()
 
 	c.Check(str, gc.Equals, "ubuntu")
 }
 
-func (distroSuite) TestIDStringUnknown(c *gc.C) {
+func (distroIDSuite) TestStringUnknown(c *gc.C) {
 	id := os.DistroID(99)
 	str := id.String()
 
 	c.Check(str, gc.Equals, "unknown")
 }
 
-func (distroSuite) TestIDStringZeroValue(c *gc.C) {
+func (distroIDSuite) TestStringZeroValue(c *gc.C) {
 	var id os.DistroID
 	str := id.String()
 
 	c.Check(str, gc.Equals, "unknown")
+}
+
+func (distroIDSuite) TestInfoKnown(c *gc.C) {
+	id := os.DistroUbuntu
+	info, ok := id.Info()
+
+	c.Check(ok, jc.IsTrue)
+	c.Check(info, gc.Equals, os.Distros[os.DistroUbuntu])
+}
+
+func (distroIDSuite) TestInfoUnknown(c *gc.C) {
+	id := os.DistroID(99)
+	info, ok := id.Info()
+
+	c.Check(ok, jc.IsFalse)
+	c.Check(info, gc.Equals, os.Distro{})
+}
+
+func (distroIDSuite) TestInfoZeroValue(c *gc.C) {
+	var id os.DistroID
+	info, ok := id.Info()
+
+	c.Check(ok, jc.IsFalse)
+	c.Check(info, gc.Equals, os.Distro{})
 }

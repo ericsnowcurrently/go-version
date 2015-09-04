@@ -78,6 +78,12 @@ func (distro Distro) String() string {
 	return strings.ToLower(distro.Name)
 }
 
+// Matches returns true if the provided name matches the distro.
+// The test is case-insensitive.
+func (distro Distro) Matches(name string) bool {
+	return strings.ToLower(name) == strings.ToLower(distro.Name)
+}
+
 // IsZero reports whether distro is the zero value.
 func (distro Distro) IsZero() bool {
 	return distro == Distro{}

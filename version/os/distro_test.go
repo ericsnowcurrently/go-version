@@ -106,6 +106,38 @@ func (distroSuite) TestStringLower(c *gc.C) {
 	c.Check(str, gc.Equals, "spam")
 }
 
+func (distroSuite) TestMatchesExact(c *gc.C) {
+	distro, ok := os.DistroUbuntu.Info()
+	c.Assert(ok, jc.IsTrue)
+	matched := distro.Matches("Ubuntu")
+
+	c.Check(matched, jc.IsTrue)
+}
+
+func (distroSuite) TestMatchesCaseInsensitive(c *gc.C) {
+	distro, ok := os.DistroUbuntu.Info()
+	c.Assert(ok, jc.IsTrue)
+	matched := distro.Matches("ubuntu")
+
+	c.Check(matched, jc.IsTrue)
+}
+
+func (distroSuite) TestMatchesSimilar(c *gc.C) {
+	distro, ok := os.DistroUbuntu.Info()
+	c.Assert(ok, jc.IsTrue)
+	matched := distro.Matches("Ubuntu-LTS")
+
+	c.Check(matched, jc.IsFalse)
+}
+
+func (distroSuite) TestMatchesDifferent(c *gc.C) {
+	distro, ok := os.DistroUbuntu.Info()
+	c.Assert(ok, jc.IsTrue)
+	matched := distro.Matches("Linux")
+
+	c.Check(matched, jc.IsFalse)
+}
+
 func (distroSuite) TestIsZeroTrue(c *gc.C) {
 	var distro os.Distro
 	isZero := distro.IsZero()

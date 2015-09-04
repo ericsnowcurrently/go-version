@@ -52,6 +52,27 @@ var distros = map[DistroID]Distro{
 	},
 }
 
+// RegisterDistro adds the given distro to the set of recognized distros.
+func RegisterDistro(distro Distro) error {
+	if err := distro.Validate(); err != nil {
+		return errors.Trace(err)
+	}
+	if existing, ok := distros[distro.ID]; ok {
+		if distro == existing {
+			return nil
+		}
+		return errors.Errorf("ID for distro %q already registered for %q", distro, existing)
+	}
+	if _, ok := FindDistro(distro.String()); ok {
+		return errors.Errorf("distro %q already registered with a different ID", distro)
+	}
+
+	distros[distro.ID] = distro
+	return nil
+}
+
+// TODO(ericsnow) Support register override, unregister?
+
 // FindDistro returns the known distro corresponding to the provided
 // name, if known. It also returns true if found and false otherwise.
 func FindDistro(name string) (Distro, bool) {

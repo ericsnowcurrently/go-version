@@ -47,6 +47,103 @@ func (distroSuite) TestKnownValid(c *gc.C) {
 	}
 }
 
+func (distroSuite) TestRegisterDistroOkay(c *gc.C) {
+	id := os.DistroID(99)
+	expected := os.Distro{
+		ID:   id,
+		Name: "Spam",
+	}
+	err := os.RegisterDistro(expected)
+	defer func() {
+		delete(os.Distros, id)
+	}()
+	c.Assert(err, jc.ErrorIsNil)
+	distro, ok := os.Distros[id]
+
+	c.Check(ok, jc.IsTrue)
+	c.Check(distro, gc.Equals, expected)
+}
+
+func (distroSuite) TestRegisterDistroNoop(c *gc.C) {
+	id := os.DistroUbuntu
+	expected := os.Distros[os.DistroUbuntu]
+	err := os.RegisterDistro(expected)
+	c.Assert(err, jc.ErrorIsNil)
+	distro, ok := os.Distros[id]
+
+	c.Check(ok, jc.IsTrue)
+	c.Check(distro, gc.Equals, expected)
+}
+
+func (distroSuite) TestRegisterDistroInvalid(c *gc.C) {
+	id := os.DistroID(99)
+	expected := os.Distro{
+		ID: id,
+	}
+	err := os.RegisterDistro(expected)
+	defer func() {
+		delete(os.Distros, id)
+	}()
+	_, ok := os.Distros[id]
+
+	c.Check(ok, jc.IsFalse)
+	c.Check(err, gc.ErrorMatches, `.*Name must be set`)
+}
+
+func (distroSuite) TestRegisterDistroIDCollision(c *gc.C) {
+	id := os.DistroUbuntu
+	expected := os.Distros[os.DistroUbuntu]
+	bad := os.Distro{
+		ID:   id,
+		Name: "Spam",
+	}
+	err := os.RegisterDistro(bad)
+	distro, ok := os.Distros[id]
+
+	c.Check(err, gc.ErrorMatches, `.*ID for distro .* already registered.*`)
+	c.Check(ok, jc.IsTrue)
+	c.Check(distro, gc.Equals, expected)
+	c.Check(distro, gc.Not(gc.Equals), bad)
+}
+
+func (distroSuite) TestRegisterDistroNameCollisionExact(c *gc.C) {
+	id := os.DistroID(99)
+	expected := os.Distros[os.DistroUbuntu]
+	bad := os.Distro{
+		ID:   id,
+		Name: "Ubuntu",
+	}
+	err := os.RegisterDistro(bad)
+	defer func() {
+		delete(os.Distros, id)
+	}()
+	distro, ok := os.Distros[os.DistroUbuntu]
+
+	c.Check(err, gc.ErrorMatches, `.*distro .* already registered with a different ID`)
+	c.Check(ok, jc.IsTrue)
+	c.Check(distro, gc.Equals, expected)
+	c.Check(distro, gc.Not(gc.Equals), bad)
+}
+
+func (distroSuite) TestRegisterDistroNameCollisionCaseInsensitive(c *gc.C) {
+	id := os.DistroID(99)
+	expected := os.Distros[os.DistroUbuntu]
+	bad := os.Distro{
+		ID:   id,
+		Name: "ubuntu",
+	}
+	err := os.RegisterDistro(bad)
+	defer func() {
+		delete(os.Distros, id)
+	}()
+	distro, ok := os.Distros[os.DistroUbuntu]
+
+	c.Check(err, gc.ErrorMatches, `.*distro .* already registered with a different ID`)
+	c.Check(ok, jc.IsTrue)
+	c.Check(distro, gc.Equals, expected)
+	c.Check(distro, gc.Not(gc.Equals), bad)
+}
+
 func (distroSuite) TestFindDistroExact(c *gc.C) {
 	distro, ok := os.FindDistro("Ubuntu")
 

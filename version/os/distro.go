@@ -78,6 +78,11 @@ func (distro Distro) String() string {
 	return strings.ToLower(distro.Name)
 }
 
+// IsZero reports whether distro is the zero value.
+func (distro Distro) IsZero() bool {
+	return distro == Distro{}
+}
+
 // Distro identifies a linux distribution.
 type DistroID uint
 

@@ -106,6 +106,21 @@ func (distroSuite) TestStringLower(c *gc.C) {
 	c.Check(str, gc.Equals, "spam")
 }
 
+func (distroSuite) TestIsZeroTrue(c *gc.C) {
+	var distro os.Distro
+	isZero := distro.IsZero()
+
+	c.Check(isZero, jc.IsTrue)
+}
+
+func (distroSuite) TestIsZeroFalse(c *gc.C) {
+	var distro os.Distro
+	distro.Name = "Spam"
+	isZero := distro.IsZero()
+
+	c.Check(isZero, jc.IsFalse)
+}
+
 var _ = gc.Suite(&distroIDSuite{})
 
 type distroIDSuite struct {

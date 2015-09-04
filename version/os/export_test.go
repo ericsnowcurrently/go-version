@@ -4,5 +4,6 @@
 package os
 
 var (
-	Unix = unix
+	Unix    = unix
+	Distros = distros
 )

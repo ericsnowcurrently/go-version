@@ -52,6 +52,18 @@ var distros = map[DistroID]Distro{
 	},
 }
 
+// FindDistro returns the known distro corresponding to the provided
+// name, if known. It also returns true if found and false otherwise.
+func FindDistro(name string) (Distro, bool) {
+	name = strings.ToLower(name)
+	for _, existing := range distros {
+		if name == existing.String() {
+			return existing, true
+		}
+	}
+	return Distro{}, false
+}
+
 // Distro contains information about a linux distribution.
 type Distro struct {
 	// ID is the unique identifier for the distro.

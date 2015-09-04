@@ -47,6 +47,34 @@ func (distroSuite) TestKnownValid(c *gc.C) {
 	}
 }
 
+func (distroSuite) TestFindDistroExact(c *gc.C) {
+	distro, ok := os.FindDistro("Ubuntu")
+
+	c.Check(ok, jc.IsTrue)
+	c.Check(distro, gc.Equals, os.Distros[os.DistroUbuntu])
+}
+
+func (distroSuite) TestFindDistroCaseInsensitive(c *gc.C) {
+	distro, ok := os.FindDistro("ubuntu")
+
+	c.Check(ok, jc.IsTrue)
+	c.Check(distro, gc.Equals, os.Distros[os.DistroUbuntu])
+}
+
+func (distroSuite) TestFindDistroSimilar(c *gc.C) {
+	distro, ok := os.FindDistro("Ubuntu-LTS")
+
+	c.Check(ok, jc.IsFalse)
+	c.Check(distro, gc.Equals, os.Distro{})
+}
+
+func (distroSuite) TestFindDistroDifferent(c *gc.C) {
+	distro, ok := os.FindDistro("Linux")
+
+	c.Check(ok, jc.IsFalse)
+	c.Check(distro, gc.Equals, os.Distro{})
+}
+
 func (distroSuite) TestValidateOkay(c *gc.C) {
 	distro := os.Distro{
 		ID:   os.DistroUbuntu,

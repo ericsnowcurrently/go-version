@@ -58,6 +58,13 @@ func (osSuite) TestFindCaseInsensitive(c *gc.C) {
 	c.Check(found, gc.Equals, os.Linux)
 }
 
+func (osSuite) TestFindDistro(c *gc.C) {
+	found, ok := os.Find("Ubuntu")
+
+	c.Check(ok, jc.IsTrue)
+	c.Check(found, gc.Equals, os.Linux)
+}
+
 func (osSuite) TestFindUnknown(c *gc.C) {
 	found, ok := os.Find("???")
 

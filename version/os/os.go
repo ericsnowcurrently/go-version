@@ -54,5 +54,8 @@ func Find(name string) (string, bool) {
 	if os, ok := unix[name]; ok {
 		return os, true
 	}
+	if _, ok := FindDistro(name); ok {
+		return Linux, true
+	}
 	return Unknown, false
 }

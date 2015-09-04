@@ -3,6 +3,10 @@
 
 package os
 
+import (
+	"github.com/juju/errors"
+)
+
 func init() {
 	for id, distro := range distros {
 		distro.ID = id
@@ -52,6 +56,18 @@ type Distro struct {
 	ID DistroID
 	// Name is the name of the distro.
 	Name string
+}
+
+// Validate returns an error if the distro is not valid.
+func (distro Distro) Validate() error {
+	// TODO(ericsnow) Use errors.NotValidf?
+	if distro.ID == DistroUnknown {
+		return errors.Errorf("distro.ID must be set")
+	}
+	if distro.Name == "" {
+		return errors.Errorf("distro.Name must be set")
+	}
+	return nil
 }
 
 // Distro identifies a linux distribution.

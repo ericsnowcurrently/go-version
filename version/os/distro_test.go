@@ -37,3 +37,47 @@ func (distroSuite) TestKnownOkay(c *gc.C) {
 		})
 	}
 }
+
+func (distroSuite) TestKnownValid(c *gc.C) {
+	for _, distro := range os.Distros {
+		c.Logf("checking %q", distro)
+		err := distro.Validate()
+
+		c.Check(err, jc.ErrorIsNil)
+	}
+}
+
+func (distroSuite) TestValidateOkay(c *gc.C) {
+	distro := os.Distro{
+		ID:   os.DistroUbuntu,
+		Name: "Ubuntu",
+	}
+	err := distro.Validate()
+
+	c.Check(err, jc.ErrorIsNil)
+}
+
+func (distroSuite) TestValidateMissingID(c *gc.C) {
+	distro := os.Distro{
+		Name: "Ubuntu",
+	}
+	err := distro.Validate()
+
+	c.Check(err, gc.ErrorMatches, `.*ID must be set`)
+}
+
+func (distroSuite) TestValidateMissingName(c *gc.C) {
+	distro := os.Distro{
+		ID: os.DistroUbuntu,
+	}
+	err := distro.Validate()
+
+	c.Check(err, gc.ErrorMatches, `.*Name must be set`)
+}
+
+func (distroSuite) TestValidateEmpty(c *gc.C) {
+	var distro os.Distro
+	err := distro.Validate()
+
+	c.Check(err, gc.NotNil)
+}

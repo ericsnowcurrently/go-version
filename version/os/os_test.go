@@ -43,3 +43,31 @@ func (osSuite) TestIsUnixUnknown(c *gc.C) {
 
 	c.Check(isUnix, jc.IsFalse)
 }
+
+func (osSuite) TestFindKnown(c *gc.C) {
+	found, ok := os.Find("linux")
+
+	c.Check(ok, jc.IsTrue)
+	c.Check(found, gc.Equals, os.Linux)
+}
+
+func (osSuite) TestFindCaseInsensitive(c *gc.C) {
+	found, ok := os.Find("Linux")
+
+	c.Check(ok, jc.IsTrue)
+	c.Check(found, gc.Equals, os.Linux)
+}
+
+func (osSuite) TestFindUnknown(c *gc.C) {
+	found, ok := os.Find("???")
+
+	c.Check(ok, jc.IsFalse)
+	c.Check(found, gc.Equals, os.Unknown)
+}
+
+func (osSuite) TestFindBlank(c *gc.C) {
+	found, ok := os.Find("")
+
+	c.Check(ok, jc.IsFalse)
+	c.Check(found, gc.Equals, os.Unknown)
+}

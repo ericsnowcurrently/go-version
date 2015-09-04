@@ -3,6 +3,10 @@
 
 package os
 
+import (
+	"strings"
+)
+
 // These are the names of the operating systems recognized by Go.
 const (
 	Unknown = ""
@@ -37,4 +41,18 @@ var unix = map[string]string{
 func IsUnix(os string) bool {
 	_, ok := unix[os]
 	return ok
+}
+
+// Find returns the OS corresponding to the given name. It tests in a
+// case-insensitive way and recognizes linux distros. If no match is
+// found then false is returned.
+func Find(name string) (string, bool) {
+	name = strings.ToLower(name)
+	if name == Windows {
+		return Windows, true
+	}
+	if os, ok := unix[name]; ok {
+		return os, true
+	}
+	return Unknown, false
 }

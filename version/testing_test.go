@@ -63,6 +63,14 @@ func newBuild(major, minor, micro uint, release string, build uint) version.Buil
 	}
 }
 
+func newBinary(major, minor, micro uint, release string, build uint, series, arch string) version.Binary {
+	return version.Binary{
+		Build:  newBuild(major, minor, micro, release, build),
+		Series: series,
+		Arch:   arch,
+	}
+}
+
 type cmpTest struct {
 	vers     string
 	others   string
@@ -120,6 +128,23 @@ func (t cmpTest) compareBuilds(c *gc.C) (int, int) {
 	return compareVer, compareOther
 }
 
+func (t cmpTest) binaries(c *gc.C) (version.Binary, version.Binary) {
+	ver, _, err := version.ParseBinary(t.vers)
+	c.Assert(err, jc.ErrorIsNil)
+	other, _, err := version.ParseBinary(t.others)
+	c.Assert(err, jc.ErrorIsNil)
+	return ver, other
+}
+
+func (t cmpTest) compareBinaries(c *gc.C) (int, int) {
+	ver, other := t.binaries(c)
+	compareVer := ver.Compare(other)
+	// Check that reversing the operands has
+	// the expected result.
+	compareOther := other.Compare(ver)
+	return compareVer, compareOther
+}
+
 func (t cmpTest) run(c *gc.C, kind string) {
 	c.Logf("- testing %q <> %q -> %d", t.vers, t.others, t.expected)
 
@@ -131,6 +156,8 @@ func (t cmpTest) run(c *gc.C, kind string) {
 		compareVer, compareOther = t.compareReleases(c)
 	case "build":
 		compareVer, compareOther = t.compareBuilds(c)
+	case "binary":
+		compareVer, compareOther = t.compareBinaries(c)
 	default:
 		c.Logf("unknown kind %q", kind)
 		c.FailNow()
@@ -156,6 +183,8 @@ func (t versionTest) zero(c *gc.C, kind string) interface{} {
 		return &version.Release{}
 	case "build":
 		return &version.Build{}
+	case "binary":
+		return &version.Binary{}
 	default:
 		c.Logf("unknown kind %q", kind)
 		c.FailNow()
@@ -175,6 +204,10 @@ func (t versionTest) parsed(c *gc.C, kind string) interface{} {
 		return &ver
 	case "build":
 		ver, _, err := version.ParseBuild(t.vers)
+		c.Assert(err, jc.ErrorIsNil)
+		return &ver
+	case "binary":
+		ver, _, err := version.ParseBinary(t.vers)
 		c.Assert(err, jc.ErrorIsNil)
 		return &ver
 	default:
@@ -205,6 +238,8 @@ func (t versionTest) checkParsing(c *gc.C, kind string) {
 		ver, _, err = version.ParseRelease(t.vers)
 	case "build":
 		ver, _, err = version.ParseBuild(t.vers)
+	case "binary":
+		ver, _, err = version.ParseBinary(t.vers)
 	default:
 		c.Logf("unknown kind %q", kind)
 		c.FailNow()

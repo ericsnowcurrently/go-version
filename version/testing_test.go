@@ -281,7 +281,7 @@ var marshallers = map[string]marshaller{
 	"yaml": marshaller{
 		goyaml.Marshal,
 		goyaml.Unmarshal,
-		// Work around goyaml bug? (#1096149)
+		// TODO(ericsnow) Work around goyaml bug? (#1096149)
 		// (SetYAML is not called for non-pointer fields.)
 	},
 }

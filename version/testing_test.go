@@ -6,6 +6,7 @@ package version_test
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/juju/testing"
 	jc "github.com/juju/testing/checkers"
@@ -24,6 +25,34 @@ func newNumber(major, minor, micro uint) version.Number {
 		Major: major,
 		Minor: minor,
 		Micro: micro,
+	}
+}
+
+func newRelease(major, minor, micro uint, release string) version.Release {
+	var level version.ReleaseLevel
+	var serial uint
+	switch {
+	case release == "dev":
+		level = version.ReleaseDevelopment
+	case strings.HasPrefix(release, "a"):
+		level = version.ReleaseAlpha
+		fmt.Sscanf(release, "a%d", &serial)
+	case strings.HasPrefix(release, "b"):
+		level = version.ReleaseBeta
+		fmt.Sscanf(release, "b%d", &serial)
+	case strings.HasPrefix(release, "rc"):
+		level = version.ReleaseCandidate
+		fmt.Sscanf(release, "rc%d", &serial)
+	case release == "":
+		level = version.ReleaseFinal
+	default:
+		panic(fmt.Sprintf("unrecognized release %q", release))
+	}
+
+	return version.Release{
+		Number: newNumber(major, minor, micro),
+		Level:  level,
+		Serial: serial,
 	}
 }
 
@@ -50,6 +79,23 @@ func (t cmpTest) compareNumbers(c *gc.C) (int, int) {
 	return compareVer, compareOther
 }
 
+func (t cmpTest) releases(c *gc.C) (version.Release, version.Release) {
+	ver, _, err := version.ParseRelease(t.vers)
+	c.Assert(err, jc.ErrorIsNil)
+	other, _, err := version.ParseRelease(t.others)
+	c.Assert(err, jc.ErrorIsNil)
+	return ver, other
+}
+
+func (t cmpTest) compareReleases(c *gc.C) (int, int) {
+	ver, other := t.releases(c)
+	compareVer := ver.Compare(other)
+	// Check that reversing the operands has
+	// the expected result.
+	compareOther := other.Compare(ver)
+	return compareVer, compareOther
+}
+
 func (t cmpTest) run(c *gc.C, kind string) {
 	c.Logf("testing %q <> %q -> %d", t.vers, t.others, t.expected)
 
@@ -57,6 +103,8 @@ func (t cmpTest) run(c *gc.C, kind string) {
 	switch kind {
 	case "number":
 		compareVer, compareOther = t.compareNumbers(c)
+	case "release":
+		compareVer, compareOther = t.compareReleases(c)
 	default:
 		c.Logf("unknown kind %q", kind)
 		c.FailNow()
@@ -78,6 +126,8 @@ func (t versionTest) zero(c *gc.C, kind string) interface{} {
 	switch kind {
 	case "number":
 		return &version.Number{}
+	case "release":
+		return &version.Release{}
 	default:
 		c.Logf("unknown kind %q", kind)
 		c.FailNow()
@@ -89,6 +139,10 @@ func (t versionTest) parsed(c *gc.C, kind string) interface{} {
 	switch kind {
 	case "number":
 		ver, _, err := version.ParseNumber(t.vers)
+		c.Assert(err, jc.ErrorIsNil)
+		return &ver
+	case "release":
+		ver, _, err := version.ParseRelease(t.vers)
 		c.Assert(err, jc.ErrorIsNil)
 		return &ver
 	default:
@@ -115,6 +169,8 @@ func (t versionTest) checkParsing(c *gc.C, kind string) {
 	switch kind {
 	case "number":
 		ver, _, err = version.ParseNumber(t.vers)
+	case "release":
+		ver, _, err = version.ParseRelease(t.vers)
 	default:
 		c.Logf("unknown kind %q", kind)
 		c.FailNow()

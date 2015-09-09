@@ -4,6 +4,7 @@
 package version_test
 
 import (
+	"github.com/juju/errors"
 	jc "github.com/juju/testing/checkers"
 	gc "gopkg.in/check.v1"
 
@@ -103,6 +104,41 @@ func (binarySuite) TestIsZeroFalse(c *gc.C) {
 	isZero := bin.IsZero()
 
 	c.Check(isZero, jc.IsFalse)
+}
+
+func (binarySuite) TestValidateOkay(c *gc.C) {
+	bin := newBinary(2, 3, 1, "a1", 2, "trusty", "amd64")
+	err := bin.Validate()
+
+	c.Check(err, jc.ErrorIsNil)
+}
+
+func (binarySuite) TestValidateMissingSeries(c *gc.C) {
+	bin := newBinary(2, 3, 1, "a1", 2, "", "amd64")
+	err := bin.Validate()
+
+	c.Check(err, jc.Satisfies, errors.IsNotValid)
+}
+
+func (binarySuite) TestValidateBadSeries(c *gc.C) {
+	bin := newBinary(2, 3, 1, "a1", 2, "_trusty", "amd64")
+	err := bin.Validate()
+
+	c.Check(err, jc.Satisfies, errors.IsNotValid)
+}
+
+func (binarySuite) TestValidateMissingArch(c *gc.C) {
+	bin := newBinary(2, 3, 1, "a1", 2, "trusty", "")
+	err := bin.Validate()
+
+	c.Check(err, jc.Satisfies, errors.IsNotValid)
+}
+
+func (binarySuite) TestValidateBadArch(c *gc.C) {
+	bin := newBinary(2, 3, 1, "a1", 2, "trusty", "_amd64")
+	err := bin.Validate()
+
+	c.Check(err, jc.Satisfies, errors.IsNotValid)
 }
 
 func (binarySuite) TestCompare(c *gc.C) {

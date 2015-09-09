@@ -6,6 +6,7 @@ package version_test
 import (
 	"fmt"
 
+	"github.com/juju/errors"
 	jc "github.com/juju/testing/checkers"
 	gc "gopkg.in/check.v1"
 
@@ -79,6 +80,20 @@ func (numberSuite) TestIsZeroFalse(c *gc.C) {
 	isZero := num.IsZero()
 
 	c.Check(isZero, jc.IsFalse)
+}
+
+func (numberSuite) TestValidateOkay(c *gc.C) {
+	num := newNumber(3, 3, 3)
+	err := num.Validate()
+
+	c.Check(err, jc.ErrorIsNil)
+}
+
+func (numberSuite) TestValidateZeroValue(c *gc.C) {
+	num := newNumber(0, 0, 0)
+	err := num.Validate()
+
+	c.Check(err, jc.Satisfies, errors.IsNotValid)
 }
 
 func (numberSuite) TestCompare(c *gc.C) {

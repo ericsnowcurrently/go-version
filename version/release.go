@@ -139,6 +139,27 @@ func (rel Release) IsZero() bool {
 	return rel == Release{}
 }
 
+// Validate ensures that the Release is valid. If not then it returns
+// errors.NotValid.
+func (rel Release) Validate() error {
+	if err := rel.Number.Validate(); err != nil {
+		return errors.Trace(err)
+	}
+	if _, ok := releaseLevelNames[rel.Level]; !ok {
+		return errors.NotValidf("release level %q", rel.Level)
+	}
+	if releaseLevelSingletons[rel.Level] {
+		if rel.Serial != 0 {
+			return errors.NotValidf("release serial %d for level %s (must be 0)", rel.Serial, rel.Level)
+		}
+	} else {
+		if rel.Serial < 1 {
+			return errors.NotValidf("release serial %d for level %s (must be greater than 0)", rel.Serial, rel.Level)
+		}
+	}
+	return nil
+}
+
 // Compare returns -1, 0 or 1 depending on whether
 // v is less than, equal to or greater than w.
 func (rel Release) Compare(other Release) int {

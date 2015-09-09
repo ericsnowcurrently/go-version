@@ -182,6 +182,46 @@ func (releaseSuite) TestIsZeroFalse(c *gc.C) {
 	c.Check(isZero, jc.IsFalse)
 }
 
+func (releaseSuite) TestValidateOkay(c *gc.C) {
+	rel := newRelease(3, 3, 3, "b2")
+	err := rel.Validate()
+
+	c.Check(err, jc.ErrorIsNil)
+}
+
+func (releaseSuite) TestValidateUnknownLevel(c *gc.C) {
+	rel := version.Release{
+		Number: newNumber(3, 3, 3),
+		Level:  version.ReleaseLevel(99),
+		Serial: 1,
+	}
+	err := rel.Validate()
+
+	c.Check(err, jc.Satisfies, errors.IsNotValid)
+}
+
+func (releaseSuite) TestValidateBadNonZeroSerial(c *gc.C) {
+	rel := version.Release{
+		Number: newNumber(3, 3, 3),
+		Level:  version.ReleaseFinal,
+		Serial: 1,
+	}
+	err := rel.Validate()
+
+	c.Check(err, jc.Satisfies, errors.IsNotValid)
+}
+
+func (releaseSuite) TestValidateBadZeroSerial(c *gc.C) {
+	rel := version.Release{
+		Number: newNumber(3, 3, 3),
+		Level:  version.ReleaseBeta,
+		Serial: 0,
+	}
+	err := rel.Validate()
+
+	c.Check(err, jc.Satisfies, errors.IsNotValid)
+}
+
 func (releaseSuite) TestCompare(c *gc.C) {
 	var tests []cmpTest
 	vers := "3.3.3b2"

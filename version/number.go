@@ -95,6 +95,15 @@ func (num Number) IsZero() bool {
 	return num == Number{}
 }
 
+// Validate ensures that the Number is valid. If not then it returns
+// errors.NotValid.
+func (num Number) Validate() error {
+	if num.IsZero() {
+		return errors.NotValidf("zero-value Number")
+	}
+	return nil
+}
+
 // Compare returns -1, 0 or 1 depending on whether
 // v is less than, equal to or greater than w.
 func (num Number) Compare(other Number) int {

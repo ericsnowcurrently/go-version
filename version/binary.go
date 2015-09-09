@@ -80,6 +80,31 @@ func (bin Binary) IsZero() bool {
 	return bin == Binary{}
 }
 
+// Validate() ensures the Binary is valid. If not then it returns
+// errors.NotValid.
+func (bin Binary) Validate() error {
+	if err := bin.Build.Validate(); err != nil {
+		return errors.Trace(err)
+	}
+
+	if bin.Series == "" || bin.Series == unknown {
+		return errors.NotValidf("binary series missing")
+	}
+	fieldPat := fmt.Sprintf(`^%s+$`, binFieldPat)
+	if matched, _ := regexp.MatchString(fieldPat, bin.Series); !matched {
+		return errors.NotValidf("unrecognized binary series %q", bin.Series)
+	}
+
+	if bin.Arch == "" || bin.Arch == unknown {
+		return errors.NotValidf("binary arch missing")
+	}
+	if matched, _ := regexp.MatchString(fieldPat, bin.Arch); !matched {
+		return errors.NotValidf("unrecognized binary arch %q", bin.Arch)
+	}
+
+	return nil
+}
+
 // Compare returns -1, 0 or 1 depending on whether
 // v is less than, equal to or greater than w.
 func (bin Binary) Compare(other Binary) int {

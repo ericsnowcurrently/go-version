@@ -4,6 +4,7 @@
 package version_test
 
 import (
+	"github.com/juju/errors"
 	jc "github.com/juju/testing/checkers"
 	gc "gopkg.in/check.v1"
 
@@ -83,6 +84,20 @@ func (buildSuite) TestIsZeroFalse(c *gc.C) {
 	isZero := build.IsZero()
 
 	c.Check(isZero, jc.IsFalse)
+}
+
+func (buildSuite) TestValidateOkay(c *gc.C) {
+	build := newBuild(3, 3, 3, "b2", 4)
+	err := build.Validate()
+
+	c.Check(err, jc.ErrorIsNil)
+}
+
+func (buildSuite) TestValidateBadIndex(c *gc.C) {
+	build := newBuild(3, 3, 3, "b2", 0)
+	err := build.Validate()
+
+	c.Check(err, jc.Satisfies, errors.IsNotValid)
 }
 
 func (buildSuite) TestCompare(c *gc.C) {

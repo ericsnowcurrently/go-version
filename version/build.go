@@ -67,6 +67,18 @@ func (build Build) IsZero() bool {
 	return build == Build{}
 }
 
+// Validate ensures that the Build is valid. If not then it returns
+// errors.NotValid.
+func (build Build) Validate() error {
+	if err := build.Release.Validate(); err != nil {
+		return errors.Trace(err)
+	}
+	if build.Index == 0 {
+		return errors.NotValidf("index (must be non-zero)")
+	}
+	return nil
+}
+
 // Compare returns -1, 0 or 1 depending on whether
 // v is less than, equal to or greater than w.
 func (build Build) Compare(other Build) int {

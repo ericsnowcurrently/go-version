@@ -56,6 +56,13 @@ func newRelease(major, minor, micro uint, release string) version.Release {
 	}
 }
 
+func newBuild(major, minor, micro uint, release string, build uint) version.Build {
+	return version.Build{
+		Release: newRelease(major, minor, micro, release),
+		Index:   build,
+	}
+}
+
 type cmpTest struct {
 	vers     string
 	others   string
@@ -96,8 +103,25 @@ func (t cmpTest) compareReleases(c *gc.C) (int, int) {
 	return compareVer, compareOther
 }
 
+func (t cmpTest) builds(c *gc.C) (version.Build, version.Build) {
+	ver, _, err := version.ParseBuild(t.vers)
+	c.Assert(err, jc.ErrorIsNil)
+	other, _, err := version.ParseBuild(t.others)
+	c.Assert(err, jc.ErrorIsNil)
+	return ver, other
+}
+
+func (t cmpTest) compareBuilds(c *gc.C) (int, int) {
+	ver, other := t.builds(c)
+	compareVer := ver.Compare(other)
+	// Check that reversing the operands has
+	// the expected result.
+	compareOther := other.Compare(ver)
+	return compareVer, compareOther
+}
+
 func (t cmpTest) run(c *gc.C, kind string) {
-	c.Logf("testing %q <> %q -> %d", t.vers, t.others, t.expected)
+	c.Logf("- testing %q <> %q -> %d", t.vers, t.others, t.expected)
 
 	var compareVer, compareOther int
 	switch kind {
@@ -105,6 +129,8 @@ func (t cmpTest) run(c *gc.C, kind string) {
 		compareVer, compareOther = t.compareNumbers(c)
 	case "release":
 		compareVer, compareOther = t.compareReleases(c)
+	case "build":
+		compareVer, compareOther = t.compareBuilds(c)
 	default:
 		c.Logf("unknown kind %q", kind)
 		c.FailNow()
@@ -128,6 +154,8 @@ func (t versionTest) zero(c *gc.C, kind string) interface{} {
 		return &version.Number{}
 	case "release":
 		return &version.Release{}
+	case "build":
+		return &version.Build{}
 	default:
 		c.Logf("unknown kind %q", kind)
 		c.FailNow()
@@ -143,6 +171,10 @@ func (t versionTest) parsed(c *gc.C, kind string) interface{} {
 		return &ver
 	case "release":
 		ver, _, err := version.ParseRelease(t.vers)
+		c.Assert(err, jc.ErrorIsNil)
+		return &ver
+	case "build":
+		ver, _, err := version.ParseBuild(t.vers)
 		c.Assert(err, jc.ErrorIsNil)
 		return &ver
 	default:
@@ -162,7 +194,7 @@ func (t versionTest) marshaller(c *gc.C, format string) marshaller {
 }
 
 func (t versionTest) checkParsing(c *gc.C, kind string) {
-	c.Logf("testing (%s) parsing of %q", kind, t.vers)
+	c.Logf("- testing (%s) parsing of %q", kind, t.vers)
 
 	var ver fmt.Stringer
 	var err error
@@ -171,6 +203,8 @@ func (t versionTest) checkParsing(c *gc.C, kind string) {
 		ver, _, err = version.ParseNumber(t.vers)
 	case "release":
 		ver, _, err = version.ParseRelease(t.vers)
+	case "build":
+		ver, _, err = version.ParseBuild(t.vers)
 	default:
 		c.Logf("unknown kind %q", kind)
 		c.FailNow()
@@ -191,7 +225,7 @@ func (t versionTest) checkParsing(c *gc.C, kind string) {
 }
 
 func (t versionTest) checkSerialization(c *gc.C, kind, format string) {
-	c.Logf("testing %s round-trip for %q (%s)", format, t.vers, kind)
+	c.Logf("- testing %s round-trip for %q (%s)", format, t.vers, kind)
 	c.Assert(t.err, gc.Equals, "")
 
 	marshaller := t.marshaller(c, format)
@@ -207,7 +241,7 @@ func (t versionTest) checkSerialization(c *gc.C, kind, format string) {
 }
 
 func (t versionTest) checkMarshal(c *gc.C, kind, format string) {
-	c.Logf("testing %s marshalling for %q (%s)", format, t.vers, kind)
+	c.Logf("- testing %s marshalling for %q (%s)", format, t.vers, kind)
 	c.Assert(t.err, gc.Equals, "")
 
 	marshaller := t.marshaller(c, format)
@@ -220,7 +254,7 @@ func (t versionTest) checkMarshal(c *gc.C, kind, format string) {
 }
 
 func (t versionTest) checkUnmarshal(c *gc.C, kind, format string) {
-	c.Logf("testing %s unmarshalling for %q (%s)", format, t.vers, kind)
+	c.Logf("- testing %s unmarshalling for %q (%s)", format, t.vers, kind)
 	c.Assert(t.err, gc.Equals, "")
 	if t.expected == nil {
 		t.expected = t.parsed(c, kind)
